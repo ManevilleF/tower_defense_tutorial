@@ -36,24 +36,24 @@ pub fn handle_path_tiles(
     mut removals: RemovedComponents<Path>,
     changes: Query<Entity, (Added<Path>, With<Coords>)>,
     mut tiles: Query<(
-        &Coords,
         &mut Handle<StandardMaterial>,
         Option<&Target>,
+        Option<&Blocked>,
         Option<&Spawner>,
     )>,
     visuals: Res<ColumnVisuals>,
 ) {
     let mut count = 0;
     let mut iter = tiles.iter_many_mut(removals.iter());
-    while let Some((coord, mut material, target, spawner)) = iter.fetch_next() {
-        if target.is_none() && spawner.is_none() {
+    while let Some((mut material, target, blocked, spawner)) = iter.fetch_next() {
+        if target.is_none() && spawner.is_none() && blocked.is_none() {
             *material = visuals.default_mat.clone();
         }
         count += 1;
     }
     let mut iter = tiles.iter_many_mut(changes.iter());
-    while let Some((coord, mut material, target, spawner)) = iter.fetch_next() {
-        if target.is_none() && spawner.is_none() {
+    while let Some((mut material, target, blocked, spawner)) = iter.fetch_next() {
+        if target.is_none() && spawner.is_none() && blocked.is_none() {
             *material = visuals.path_mat.clone();
         }
         count += 1;

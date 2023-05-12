@@ -25,6 +25,10 @@ pub struct Spawner {
     pub amount: u32,
 }
 
+/// Marker component for the selector mesh
+#[derive(Debug, Component)]
+pub struct Selector;
+
 /// Enemy path component associated to spawner tiles
 #[derive(Debug, Component, Deref, Default)]
 pub struct EnemyPath(pub Vec<Hex>);

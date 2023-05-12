@@ -8,11 +8,12 @@ mod systems;
 use bevy::prelude::*;
 #[cfg(feature = "debug")]
 use bevy_inspector_egui::quick::*;
-use events::board::ComputePathFinding;
+use events::TileClicked;
 use resources::{
     board::{BoardConfig, HexBoard},
     hex::HexConfig,
-    visuals::ColumnVisuals,
+    input::InputState,
+    visuals::{ColumnVisuals, InputVisuals},
 };
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
@@ -53,11 +54,14 @@ fn main() {
     // Game Resources
     app.init_resource::<HexConfig>()
         .init_resource::<ColumnVisuals>()
-        .init_resource::<BoardConfig>();
+        .init_resource::<InputVisuals>()
+        .init_resource::<BoardConfig>()
+        .init_resource::<InputState>();
     // Game events
-    app.add_event::<ComputePathFinding>();
+    app.add_event::<TileClicked>();
     // Systems
     app.add_startup_system(systems::camera::setup)
+        .add_startup_system(systems::board::input::setup)
         .add_startup_system(systems::light::setup);
     app.add_system(systems::light::animate.in_set(GameSet::Light))
         .add_systems(
@@ -73,13 +77,20 @@ fn main() {
         .configure_set(GameSet::BoardSetup.run_if(should_generate_board))
         .add_systems(
             (
-                systems::board::hooks::handle_blocked_tiles,
-                systems::board::hooks::handle_path_tiles,
-                systems::board::hooks::handle_spawner_tiles,
+                systems::board::input::select_tile,
+                systems::board::input::apply_action,
                 systems::board::hooks::compute_enemy_paths.run_if(should_compute_paths),
+                systems::board::hooks::handle_spawner_tiles,
+                systems::board::hooks::handle_path_tiles,
+                systems::board::hooks::handle_blocked_tiles,
+            )
+                .chain()
+                .in_set(GameSet::Board),
+        )
+        .add_systems(
+            (
                 systems::board::input::reset_board,
                 systems::board::input::camera_zoom,
-                systems::board::input::select_tile,
             )
                 .in_set(GameSet::Board),
         )

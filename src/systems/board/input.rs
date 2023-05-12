@@ -1,10 +1,14 @@
 use std::ops::DerefMut;
 
+use crate::components::board::{Blocked, Selector, Spawner, Target};
+use crate::events::TileClicked;
+use crate::resources::input::InputState;
+use crate::resources::visuals::{InputVisuals, COLUMN_HEIGHT};
 use crate::resources::{
     board::{BoardConfig, HexBoard},
     hex::HexConfig,
-    visuals::ColumnVisuals,
 };
+use bevy::pbr::NotShadowCaster;
 use bevy::{input::mouse::MouseWheel, log, prelude::*};
 use hexx::Hex;
 
@@ -15,21 +19,29 @@ pub fn reset_board(mut commands: Commands, keys: Res<Input<KeyCode>>) {
     }
 }
 
-#[derive(Debug, Resource)]
-pub struct SelectionData {
-    pub coord: Hex,
-    pub entity: Entity,
-    pub previous_mat: Handle<StandardMaterial>,
+pub fn setup(mut commands: Commands, visuals: Res<InputVisuals>) {
+    commands.spawn((
+        PbrBundle {
+            mesh: visuals.selector_mesh.clone(),
+            material: visuals.selected_mat.clone(),
+            ..default()
+        },
+        NotShadowCaster,
+        Selector,
+    ));
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn select_tile(
     board: Res<HexBoard>,
     config: Res<HexConfig>,
-    visuals: Res<ColumnVisuals>,
     windows: Query<&Window>,
     projections: Query<&Projection>,
-    mut materials: Query<&mut Handle<StandardMaterial>>,
-    mut selection: Local<SelectionData>,
+    mouse_input: Res<Input<MouseButton>>,
+    transforms: Query<&GlobalTransform>,
+    mut selector: Query<&mut Transform, With<Selector>>,
+    mut selection: Local<Hex>,
+    mut clicked_evw: EventWriter<TileClicked>,
 ) {
     let window = windows.single();
     let projection = projections.single();
@@ -43,19 +55,47 @@ pub fn select_tile(
     };
     let pos = Vec2::new(pos.x - window.width() / 2.0, window.height() / 2.0 - pos.y) * scale;
     let coord = config.layout.world_pos_to_hex(pos);
-    selection.coord = coord;
-    let entity = match board.tile_entities.get(&selection.coord) {
-        Some(e) => *e,
-        None => return,
-    };
-    if entity != selection.entity {
-        if let Ok(mut handle) = materials.get_mut(selection.entity) {
-            *handle = selection.previous_mat.clone();
-        }
-        if let Ok(mut handle) = materials.get_mut(entity) {
-            selection.previous_mat = handle.clone();
-            selection.entity = entity;
-            *handle = visuals.selected_mat.clone();
+    if *selection != coord {
+        *selection = coord;
+        let entity = match board.tile_entities.get(&selection) {
+            Some(e) => *e,
+            None => return,
+        };
+        let mut select_tranform = selector.single_mut();
+        let target_transform = transforms.get(entity).unwrap();
+        select_tranform.translation = target_transform.transform_point(Vec3::Y * 2.0);
+    }
+    if mouse_input.just_pressed(MouseButton::Left) {
+        clicked_evw.send(TileClicked(coord));
+    }
+}
+
+pub fn apply_action(
+    mut commands: Commands,
+    mut events: EventReader<TileClicked>,
+    state: Res<InputState>,
+    board: Res<HexBoard>,
+    tiles: Query<Option<&Blocked>, (Without<Target>, Without<Spawner>)>,
+) {
+    for TileClicked(coord) in events.iter() {
+        log::info!("Clicked on {coord:?} for {state:?}");
+        let entity = match board.tile_entities.get(coord) {
+            Some(e) => *e,
+            None => continue,
+        };
+        match *state {
+            InputState::ToggleBlocked => {
+                let blocked = match tiles.get(entity) {
+                    Ok(b) => b,
+                    Err(_) => continue,
+                };
+                if blocked.is_some() {
+                    commands.entity(entity).remove::<Blocked>();
+                } else {
+                    commands.entity(entity).insert(Blocked);
+                }
+            }
+            InputState::Build => todo!(),
         }
     }
 }
@@ -70,15 +110,5 @@ pub fn camera_zoom(
     if let Projection::Orthographic(o) = projection.deref_mut() {
         o.scale += amount;
         o.scale = o.scale.clamp(0.01, 0.5);
-    }
-}
-
-impl Default for SelectionData {
-    fn default() -> Self {
-        Self {
-            coord: Default::default(),
-            entity: Entity::from_raw(0),
-            previous_mat: Default::default(),
-        }
     }
 }

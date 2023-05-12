@@ -2,11 +2,11 @@ use bevy::{
     prelude::*,
     render::{mesh::Indices, render_resource::PrimitiveTopology},
 };
-use hexx::{ColumnMeshBuilder, MeshInfo};
+use hexx::{ColumnMeshBuilder, Hex, MeshInfo};
 
 use super::hex::HexConfig;
 
-const COLUMN_HEIGHT: f32 = 5.0;
+pub const COLUMN_HEIGHT: f32 = 5.0;
 
 #[derive(Debug, Resource, Reflect)]
 pub struct ColumnVisuals {
@@ -15,8 +15,13 @@ pub struct ColumnVisuals {
     pub target_mat: Handle<StandardMaterial>,
     pub default_mat: Handle<StandardMaterial>,
     pub blocked_mat: Handle<StandardMaterial>,
-    pub selected_mat: Handle<StandardMaterial>,
     pub path_mat: Handle<StandardMaterial>,
+}
+
+#[derive(Debug, Resource, Reflect)]
+pub struct InputVisuals {
+    pub selector_mesh: Handle<Mesh>,
+    pub selected_mat: Handle<StandardMaterial>,
 }
 
 impl FromWorld for ColumnVisuals {
@@ -26,7 +31,7 @@ impl FromWorld for ColumnVisuals {
         let mut meshes = world.resource_mut::<Assets<Mesh>>();
         let mesh_info = ColumnMeshBuilder::new(&layout, COLUMN_HEIGHT)
             .without_bottom_face()
-            .with_offset(Vec3::Y * COLUMN_HEIGHT)
+            .with_offset(Vec3::NEG_Y * COLUMN_HEIGHT)
             .build();
         let mesh = meshes.add(compute_hex_mesh(mesh_info));
         let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
@@ -34,7 +39,6 @@ impl FromWorld for ColumnVisuals {
         let target_mat = materials.add(Color::CYAN.into());
         let default_mat = materials.add(Color::GREEN.into());
         let blocked_mat = materials.add(Color::GRAY.into());
-        let selected_mat = materials.add(Color::YELLOW.into());
         let path_mat = materials.add(Color::WHITE.into());
         Self {
             mesh,
@@ -42,8 +46,26 @@ impl FromWorld for ColumnVisuals {
             target_mat,
             default_mat,
             blocked_mat,
-            selected_mat,
             path_mat,
+        }
+    }
+}
+
+impl FromWorld for InputVisuals {
+    fn from_world(world: &mut World) -> Self {
+        let hex_config = world.resource::<HexConfig>();
+        let mesh_info = MeshInfo::hexagonal_plane(&hex_config.layout, Hex::ZERO);
+        let mut meshes = world.resource_mut::<Assets<Mesh>>();
+        let selector_mesh = meshes.add(compute_hex_mesh(mesh_info));
+        let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
+        let selected_mat = materials.add(StandardMaterial {
+            base_color: Color::YELLOW.with_a(0.9),
+            unlit: true,
+            ..default()
+        });
+        Self {
+            selected_mat,
+            selector_mesh,
         }
     }
 }
