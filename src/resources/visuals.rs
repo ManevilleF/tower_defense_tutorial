@@ -11,11 +11,12 @@ const COLUMN_HEIGHT: f32 = 5.0;
 #[derive(Debug, Resource, Reflect)]
 pub struct ColumnVisuals {
     pub mesh: Handle<Mesh>,
-    pub start_mat: Handle<StandardMaterial>,
-    pub end_mat: Handle<StandardMaterial>,
-    pub path_mat: Handle<StandardMaterial>,
+    pub spawner_mat: Handle<StandardMaterial>,
+    pub target_mat: Handle<StandardMaterial>,
+    pub default_mat: Handle<StandardMaterial>,
     pub blocked_mat: Handle<StandardMaterial>,
     pub selected_mat: Handle<StandardMaterial>,
+    pub path_mat: Handle<StandardMaterial>,
 }
 
 impl FromWorld for ColumnVisuals {
@@ -29,18 +30,20 @@ impl FromWorld for ColumnVisuals {
             .build();
         let mesh = meshes.add(compute_hex_mesh(mesh_info));
         let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
-        let start_mat = materials.add(Color::ORANGE_RED.into());
-        let end_mat = materials.add(Color::CYAN.into());
-        let path_mat = materials.add(Color::GREEN.into());
+        let spawner_mat = materials.add(Color::ORANGE_RED.into());
+        let target_mat = materials.add(Color::CYAN.into());
+        let default_mat = materials.add(Color::GREEN.into());
         let blocked_mat = materials.add(Color::GRAY.into());
-        let selected_mat = materials.add(Color::YELLOW.with_a(0.5).into());
+        let selected_mat = materials.add(Color::YELLOW.into());
+        let path_mat = materials.add(Color::WHITE.into());
         Self {
             mesh,
-            start_mat,
-            end_mat,
-            path_mat,
+            spawner_mat,
+            target_mat,
+            default_mat,
             blocked_mat,
             selected_mat,
+            path_mat,
         }
     }
 }

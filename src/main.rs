@@ -9,7 +9,11 @@ use bevy::prelude::*;
 #[cfg(feature = "debug")]
 use bevy_inspector_egui::quick::*;
 use events::board::ComputePathFinding;
-use resources::{board::BoardConfig, hex::HexConfig, visuals::ColumnVisuals};
+use resources::{
+    board::{BoardConfig, HexBoard},
+    hex::HexConfig,
+    visuals::ColumnVisuals,
+};
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -70,9 +74,11 @@ fn main() {
         .add_systems(
             (
                 systems::board::hooks::handle_blocked_tiles,
+                systems::board::hooks::handle_path_tiles,
                 systems::board::hooks::handle_spawner_tiles,
-                systems::board::hooks::compute_enemy_paths,
+                systems::board::hooks::compute_enemy_paths.run_if(should_compute_paths),
                 systems::board::input::reset_board,
+                systems::board::input::camera_zoom,
                 systems::board::input::select_tile,
             )
                 .in_set(GameSet::Board),
@@ -84,4 +90,8 @@ fn main() {
 
 fn should_generate_board(config: Res<BoardConfig>) -> bool {
     config.is_changed()
+}
+
+fn should_compute_paths(board: Res<HexBoard>) -> bool {
+    board.is_changed()
 }

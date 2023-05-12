@@ -1,5 +1,5 @@
 use crate::{
-    components::board::{Blocked, Board, Coords, Spawner, Target},
+    components::board::{Blocked, Board, Coords, EnemyPath, Spawner, Target},
     resources::{
         board::{BoardConfig, HexBoard},
         hex::HexConfig,
@@ -37,14 +37,14 @@ pub fn board(
                     PbrBundle {
                         transform: Transform::from_translation(translation),
                         mesh: visuals.mesh.clone(),
-                        material: visuals.path_mat.clone(),
+                        material: visuals.default_mat.clone(),
                         ..default()
                     },
                     Coords(coord),
                     Name::new(format!("{} {}", coord.x, coord.y)),
                 ));
                 if coord == Hex::ZERO {
-                    cmd.insert((visuals.end_mat.clone(), Target));
+                    cmd.insert((visuals.target_mat.clone(), Target));
                 };
                 let entity = cmd.id();
                 tile_entities.insert(coord, entity);
@@ -67,7 +67,7 @@ pub fn blocked_tiles(
     mut rng: ResMut<GameRng>,
 ) {
     for (c, entity) in board.tile_entities.iter() {
-        if c.ulength() == 0 {
+        if c.ulength() == 0 || c.ulength() >= config.map_radius {
             continue;
         }
         if rng.gen_bool(1.0 / config.difficulty()) {
@@ -91,10 +91,11 @@ pub fn spawners(
         })
         .collect();
     for coord in spawners {
-        commands
-            .entity(board.tile_entities[&coord])
-            .insert(Spawner {
+        commands.entity(board.tile_entities[&coord]).insert((
+            Spawner {
                 amount: config.enemy_count(0),
-            });
+            },
+            EnemyPath::default(),
+        ));
     }
 }

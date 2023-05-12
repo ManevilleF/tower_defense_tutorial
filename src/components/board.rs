@@ -15,8 +15,16 @@ pub struct Target;
 #[derive(Debug, Component)]
 pub struct Blocked;
 
+/// tile marker component part of enemy path
+#[derive(Debug, Component)]
+pub struct Path;
+
 /// Enemy spawner tile component
 #[derive(Debug, Component)]
 pub struct Spawner {
     pub amount: u32,
 }
+
+/// Enemy path component associated to spawner tiles
+#[derive(Debug, Component, Deref, Default)]
+pub struct EnemyPath(pub Vec<Hex>);

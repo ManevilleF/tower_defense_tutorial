@@ -1,4 +1,5 @@
 use bevy::{
+    log,
     prelude::*,
     utils::{HashMap, HashSet},
 };
@@ -61,9 +62,18 @@ impl HexBoard {
     pub const COLUMN_UNIT_HEIGHT: f32 = 1.0;
 
     pub fn shortest_path(&self, start: Hex, end: Hex) -> Vec<Hex> {
-        a_star(start, end, |h| {
-            self.blocked_tiles.contains(&h).then_some(1000)
+        log::debug!("Computing path between {start:?} and {end:?} ...");
+        let path = a_star(start, end, |h| {
+            self.tile_entities
+                .contains_key(&h)
+                .then_some(if self.blocked_tiles.contains(&h) {
+                    100
+                } else {
+                    1
+                })
         })
-        .unwrap()
+        .unwrap();
+        log::debug!("... Done");
+        path
     }
 }

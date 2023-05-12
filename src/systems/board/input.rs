@@ -1,9 +1,11 @@
+use std::ops::DerefMut;
+
 use crate::resources::{
     board::{BoardConfig, HexBoard},
     hex::HexConfig,
     visuals::ColumnVisuals,
 };
-use bevy::{log, prelude::*};
+use bevy::{input::mouse::MouseWheel, log, prelude::*};
 use hexx::Hex;
 
 pub fn reset_board(mut commands: Commands, keys: Res<Input<KeyCode>>) {
@@ -55,6 +57,19 @@ pub fn select_tile(
             selection.entity = entity;
             *handle = visuals.selected_mat.clone();
         }
+    }
+}
+
+pub fn camera_zoom(
+    mut scroll_evr: EventReader<MouseWheel>,
+    mut projections: Query<&mut Projection>,
+    time: Res<Time>,
+) {
+    let amount: f32 = scroll_evr.iter().map(|e| e.y).sum::<f32>() * time.raw_delta_seconds();
+    let mut projection = projections.single_mut();
+    if let Projection::Orthographic(o) = projection.deref_mut() {
+        o.scale += amount;
+        o.scale = o.scale.clamp(0.01, 0.5);
     }
 }
 
