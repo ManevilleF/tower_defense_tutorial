@@ -2,51 +2,48 @@ use bevy::{
     prelude::*,
     render::{mesh::Indices, render_resource::PrimitiveTopology},
 };
-use hexx::{ColumnMeshBuilder, Hex, MeshInfo};
+use hexx::{HexLayout, PlaneMeshBuilder};
 
 use super::hex::HexConfig;
-
-pub const COLUMN_HEIGHT: f32 = 5.0;
 
 #[derive(Debug, Resource, Reflect)]
 pub struct ColumnVisuals {
     pub mesh: Handle<Mesh>,
-    pub spawner_mat: Handle<StandardMaterial>,
-    pub target_mat: Handle<StandardMaterial>,
-    pub default_mat: Handle<StandardMaterial>,
-    pub blocked_mat: Handle<StandardMaterial>,
-    pub path_mat: Handle<StandardMaterial>,
+    pub spawner_mat: Handle<ColorMaterial>,
+    pub target_mat: Handle<ColorMaterial>,
+    pub default_mat: Handle<ColorMaterial>,
+    pub blocked_mat: Handle<ColorMaterial>,
 }
 
 #[derive(Debug, Resource, Reflect)]
 pub struct InputVisuals {
     pub selector_mesh: Handle<Mesh>,
-    pub selected_mat: Handle<StandardMaterial>,
+    pub selected_mat: Handle<ColorMaterial>,
+}
+
+#[derive(Debug, Resource, Reflect)]
+pub struct EnemyVisuals {
+    pub mesh: Handle<Mesh>,
+    pub health_mats: Vec<Handle<ColorMaterial>>,
 }
 
 impl FromWorld for ColumnVisuals {
     fn from_world(world: &mut World) -> Self {
         let hex_config = world.resource::<HexConfig>();
-        let layout = hex_config.layout.clone(); // borrow checker issue
+        let mesh = compute_hex_mesh(&hex_config.layout);
         let mut meshes = world.resource_mut::<Assets<Mesh>>();
-        let mesh_info = ColumnMeshBuilder::new(&layout, COLUMN_HEIGHT)
-            .without_bottom_face()
-            .with_offset(Vec3::NEG_Y * COLUMN_HEIGHT)
-            .build();
-        let mesh = meshes.add(compute_hex_mesh(mesh_info));
-        let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
+        let mesh = meshes.add(mesh);
+        let mut materials = world.resource_mut::<Assets<ColorMaterial>>();
         let spawner_mat = materials.add(Color::ORANGE_RED.into());
-        let target_mat = materials.add(Color::CYAN.into());
+        let target_mat = materials.add(Color::WHITE.into());
         let default_mat = materials.add(Color::GREEN.into());
         let blocked_mat = materials.add(Color::GRAY.into());
-        let path_mat = materials.add(Color::WHITE.into());
         Self {
             mesh,
             spawner_mat,
             target_mat,
             default_mat,
             blocked_mat,
-            path_mat,
         }
     }
 }
@@ -54,15 +51,11 @@ impl FromWorld for ColumnVisuals {
 impl FromWorld for InputVisuals {
     fn from_world(world: &mut World) -> Self {
         let hex_config = world.resource::<HexConfig>();
-        let mesh_info = MeshInfo::hexagonal_plane(&hex_config.layout, Hex::ZERO);
+        let mesh = compute_hex_mesh(&hex_config.layout);
         let mut meshes = world.resource_mut::<Assets<Mesh>>();
-        let selector_mesh = meshes.add(compute_hex_mesh(mesh_info));
-        let mut materials = world.resource_mut::<Assets<StandardMaterial>>();
-        let selected_mat = materials.add(StandardMaterial {
-            base_color: Color::YELLOW.with_a(0.9),
-            unlit: true,
-            ..default()
-        });
+        let selector_mesh = meshes.add(mesh);
+        let mut materials = world.resource_mut::<Assets<ColorMaterial>>();
+        let selected_mat = materials.add(Color::YELLOW.with_a(0.9).into());
         Self {
             selected_mat,
             selector_mesh,
@@ -70,7 +63,26 @@ impl FromWorld for InputVisuals {
     }
 }
 
-pub fn compute_hex_mesh(mesh_info: MeshInfo) -> Mesh {
+impl FromWorld for EnemyVisuals {
+    fn from_world(world: &mut World) -> Self {
+        let mesh = shape::Circle::new(5.0);
+        let mut meshes = world.resource_mut::<Assets<Mesh>>();
+        let mesh = meshes.add(mesh.into());
+        let colors: [Color; u8::MAX as usize] = std::array::from_fn(|i| {
+            let v = i as u8;
+            Color::rgb_u8(v, v, v)
+        });
+        let mut materials = world.resource_mut::<Assets<ColorMaterial>>();
+        let health_mats = colors
+            .into_iter()
+            .map(|c| materials.add(c.into()))
+            .collect();
+        Self { mesh, health_mats }
+    }
+}
+
+pub fn compute_hex_mesh(layout: &HexLayout) -> Mesh {
+    let mesh_info = PlaneMeshBuilder::new(layout).facing(Vec3::Z).build();
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, mesh_info.vertices);
     mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, mesh_info.normals);

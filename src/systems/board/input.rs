@@ -1,16 +1,15 @@
-use std::ops::DerefMut;
-
-use crate::components::board::{Blocked, Selector, Spawner, Target};
+use crate::components::*;
 use crate::events::TileClicked;
 use crate::resources::input::InputState;
-use crate::resources::visuals::{InputVisuals, COLUMN_HEIGHT};
+use crate::resources::visuals::InputVisuals;
 use crate::resources::{
     board::{BoardConfig, HexBoard},
     hex::HexConfig,
 };
-use bevy::pbr::NotShadowCaster;
 use bevy::{input::mouse::MouseWheel, log, prelude::*};
 use hexx::Hex;
+
+const Z_POS: f32 = 10.0;
 
 pub fn reset_board(mut commands: Commands, keys: Res<Input<KeyCode>>) {
     if keys.just_pressed(KeyCode::R) {
@@ -21,13 +20,14 @@ pub fn reset_board(mut commands: Commands, keys: Res<Input<KeyCode>>) {
 
 pub fn setup(mut commands: Commands, visuals: Res<InputVisuals>) {
     commands.spawn((
-        PbrBundle {
-            mesh: visuals.selector_mesh.clone(),
+        ColorMesh2dBundle {
+            mesh: visuals.selector_mesh.clone().into(),
             material: visuals.selected_mat.clone(),
+            transform: Transform::from_xyz(0.0, 0.0, -10.0),
             ..default()
         },
-        NotShadowCaster,
         Selector,
+        Name::new("Selector"),
     ));
 }
 
@@ -36,7 +36,7 @@ pub fn select_tile(
     board: Res<HexBoard>,
     config: Res<HexConfig>,
     windows: Query<&Window>,
-    projections: Query<&Projection>,
+    projections: Query<&OrthographicProjection>,
     mouse_input: Res<Input<MouseButton>>,
     transforms: Query<&GlobalTransform>,
     mut selector: Query<&mut Transform, With<Selector>>,
@@ -45,15 +45,12 @@ pub fn select_tile(
 ) {
     let window = windows.single();
     let projection = projections.single();
-    let scale = match projection {
-        Projection::Perspective(_) => 1.0,
-        Projection::Orthographic(o) => o.scale,
-    };
+    let scale = projection.scale;
     let pos = match window.cursor_position() {
         Some(p) => p,
         None => return,
     };
-    let pos = Vec2::new(pos.x - window.width() / 2.0, window.height() / 2.0 - pos.y) * scale;
+    let pos = (pos - Vec2::new(window.width(), window.height()) / 2.0) * scale;
     let coord = config.layout.world_pos_to_hex(pos);
     if *selection != coord {
         *selection = coord;
@@ -63,7 +60,7 @@ pub fn select_tile(
         };
         let mut select_tranform = selector.single_mut();
         let target_transform = transforms.get(entity).unwrap();
-        select_tranform.translation = target_transform.transform_point(Vec3::Y * 2.0);
+        select_tranform.translation = target_transform.transform_point(Vec3::Z * Z_POS);
     }
     if mouse_input.just_pressed(MouseButton::Left) {
         clicked_evw.send(TileClicked(coord));
@@ -71,11 +68,10 @@ pub fn select_tile(
 }
 
 pub fn apply_action(
-    mut commands: Commands,
     mut events: EventReader<TileClicked>,
     state: Res<InputState>,
     board: Res<HexBoard>,
-    tiles: Query<Option<&Blocked>, (Without<Target>, Without<Spawner>)>,
+    mut tiles: Query<&mut TileType>,
 ) {
     for TileClicked(coord) in events.iter() {
         log::info!("Clicked on {coord:?} for {state:?}");
@@ -85,14 +81,14 @@ pub fn apply_action(
         };
         match *state {
             InputState::ToggleBlocked => {
-                let blocked = match tiles.get(entity) {
+                let mut tile = match tiles.get_mut(entity) {
                     Ok(b) => b,
                     Err(_) => continue,
                 };
-                if blocked.is_some() {
-                    commands.entity(entity).remove::<Blocked>();
-                } else {
-                    commands.entity(entity).insert(Blocked);
+                match *tile {
+                    TileType::Default => *tile = TileType::Mountain,
+                    TileType::Mountain => *tile = TileType::Default,
+                    _ => (),
                 }
             }
             InputState::Build => todo!(),
@@ -102,13 +98,14 @@ pub fn apply_action(
 
 pub fn camera_zoom(
     mut scroll_evr: EventReader<MouseWheel>,
-    mut projections: Query<&mut Projection>,
+    mut projections: Query<&mut OrthographicProjection>,
     time: Res<Time>,
 ) {
+    if scroll_evr.is_empty() {
+        return;
+    }
     let amount: f32 = scroll_evr.iter().map(|e| e.y).sum::<f32>() * time.raw_delta_seconds();
     let mut projection = projections.single_mut();
-    if let Projection::Orthographic(o) = projection.deref_mut() {
-        o.scale += amount;
-        o.scale = o.scale.clamp(0.01, 0.5);
-    }
+    projection.scale += amount;
+    projection.scale = projection.scale.clamp(0.1, 5.0);
 }

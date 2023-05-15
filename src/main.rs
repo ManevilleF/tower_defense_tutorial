@@ -8,12 +8,12 @@ mod systems;
 use bevy::prelude::*;
 #[cfg(feature = "debug")]
 use bevy_inspector_egui::quick::*;
-use events::TileClicked;
+use events::{ComputePaths, TileClicked};
 use resources::{
     board::{BoardConfig, HexBoard},
     hex::HexConfig,
     input::InputState,
-    visuals::{ColumnVisuals, InputVisuals},
+    visuals::{ColumnVisuals, EnemyVisuals, InputVisuals},
 };
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
@@ -25,8 +25,6 @@ const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.9, 1.0);
 enum GameSet {
     BoardSetup,
     Board,
-    Light,
-    // Camera,
     // Ui,
 }
 
@@ -55,46 +53,46 @@ fn main() {
     app.init_resource::<HexConfig>()
         .init_resource::<ColumnVisuals>()
         .init_resource::<InputVisuals>()
+        .init_resource::<EnemyVisuals>()
         .init_resource::<BoardConfig>()
         .init_resource::<InputState>();
     // Game events
-    app.add_event::<TileClicked>();
+    app.add_event::<TileClicked>().add_event::<ComputePaths>();
     // Systems
     app.add_startup_system(systems::camera::setup)
-        .add_startup_system(systems::board::input::setup)
-        .add_startup_system(systems::light::setup);
-    app.add_system(systems::light::animate.in_set(GameSet::Light))
-        .add_systems(
-            (
-                systems::board::setup::board,
-                apply_system_buffers,
-                systems::board::setup::blocked_tiles,
-                systems::board::setup::spawners,
-            )
-                .chain()
-                .in_set(GameSet::BoardSetup),
+        .add_startup_system(systems::board::input::setup);
+    app.add_systems(
+        (
+            systems::board::setup::board,
+            apply_system_buffers,
+            systems::board::setup::blocked_tiles,
+            systems::board::setup::spawners,
         )
-        .configure_set(GameSet::BoardSetup.run_if(should_generate_board))
-        .add_systems(
-            (
-                systems::board::input::select_tile,
-                systems::board::input::apply_action,
-                systems::board::hooks::compute_enemy_paths.run_if(should_compute_paths),
-                systems::board::hooks::handle_spawner_tiles,
-                systems::board::hooks::handle_path_tiles,
-                systems::board::hooks::handle_blocked_tiles,
-            )
-                .chain()
-                .in_set(GameSet::Board),
+            .chain()
+            .in_set(GameSet::BoardSetup),
+    )
+    .configure_set(GameSet::BoardSetup.run_if(should_generate_board))
+    .add_systems(
+        (
+            systems::board::input::select_tile,
+            systems::board::input::apply_action,
+            systems::board::hooks::compute_enemy_paths,
+            systems::board::hooks::handle_path_tiles,
+            systems::board::hooks::handle_changed_tiles,
         )
-        .add_systems(
-            (
-                systems::board::input::reset_board,
-                systems::board::input::camera_zoom,
-            )
-                .in_set(GameSet::Board),
+            .chain()
+            .in_set(GameSet::Board),
+    )
+    .add_systems(
+        (
+            systems::board::input::reset_board,
+            systems::board::input::camera_zoom,
+            systems::board::enemies::spawn,
+            systems::board::enemies::movement,
         )
-        .configure_set(GameSet::Board.after(GameSet::BoardSetup));
+            .in_set(GameSet::Board),
+    )
+    .configure_set(GameSet::Board.after(GameSet::BoardSetup));
     // run the app
     app.run();
 }

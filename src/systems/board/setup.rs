@@ -1,5 +1,5 @@
 use crate::{
-    components::board::{Blocked, Board, Coords, EnemyPath, Spawner, Target},
+    components::*,
     resources::{
         board::{BoardConfig, HexBoard},
         hex::HexConfig,
@@ -32,19 +32,20 @@ pub fn board(
         .with_children(|b| {
             for coord in Hex::ZERO.range(config.map_radius) {
                 let pos = hex_config.layout.hex_to_world_pos(coord);
-                let translation = Vec3::new(pos.x, 0.0, pos.y);
+                let translation = Vec3::new(pos.x, pos.y, 0.0);
                 let mut cmd = b.spawn((
-                    PbrBundle {
-                        transform: Transform::from_translation(translation),
-                        mesh: visuals.mesh.clone(),
-                        material: visuals.default_mat.clone(),
+                    ColorMesh2dBundle {
+                        transform: Transform::from_translation(translation)
+                            .with_scale(HexBoard::DEFAULT_SCALE),
+                        mesh: visuals.mesh.clone().into(),
                         ..default()
                     },
+                    TileType::default(),
                     Coords(coord),
                     Name::new(format!("{} {}", coord.x, coord.y)),
                 ));
                 if coord == Hex::ZERO {
-                    cmd.insert((visuals.target_mat.clone(), Target));
+                    cmd.insert(TileType::Target);
                 };
                 let entity = cmd.id();
                 tile_entities.insert(coord, entity);
@@ -56,7 +57,6 @@ pub fn board(
     commands.insert_resource(HexBoard {
         entity,
         tile_entities,
-        blocked_tiles: HashSet::new(),
     });
 }
 
@@ -71,7 +71,7 @@ pub fn blocked_tiles(
             continue;
         }
         if rng.gen_bool(1.0 / config.difficulty()) {
-            commands.entity(*entity).insert(Blocked);
+            commands.entity(*entity).insert(TileType::Mountain);
         }
     }
 }
@@ -91,11 +91,8 @@ pub fn spawners(
         })
         .collect();
     for coord in spawners {
-        commands.entity(board.tile_entities[&coord]).insert((
-            Spawner {
-                amount: config.enemy_count(0),
-            },
-            EnemyPath::default(),
-        ));
+        commands
+            .entity(board.tile_entities[&coord])
+            .insert((TileType::Spawner, EnemyPath::default()));
     }
 }

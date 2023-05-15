@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use hexx::{HexLayout, HexOrientation};
 
-const HEX_SIZE: Vec2 = Vec2::ONE;
+const HEX_SIZE: Vec2 = Vec2::splat(10.0);
 
 #[derive(Debug, Resource)]
 pub struct HexConfig {

@@ -1,79 +1,51 @@
 use crate::{
-    components::board::{Blocked, Coords, EnemyPath, Path, Spawner, Target},
+    components::*,
+    events::ComputePaths,
     resources::{board::HexBoard, visuals::ColumnVisuals},
 };
 use bevy::{log, prelude::*};
 use hexx::Hex;
 
-pub fn handle_blocked_tiles(
-    mut removals: RemovedComponents<Blocked>,
-    changes: Query<Entity, (Added<Blocked>, With<Coords>)>,
-    mut tiles: Query<(&Coords, &mut Transform, &mut Handle<StandardMaterial>)>,
+pub fn handle_changed_tiles(
+    mut tiles: Query<(&TileType, &mut Handle<ColorMaterial>), Changed<TileType>>,
     visuals: Res<ColumnVisuals>,
-    mut board: ResMut<HexBoard>,
+    mut compute_path_evw: EventWriter<ComputePaths>,
 ) {
     let mut count = 0;
-    let mut iter = tiles.iter_many_mut(removals.iter());
-    while let Some((coord, mut transform, mut material)) = iter.fetch_next() {
-        board.blocked_tiles.remove(coord);
-        transform.translation.y = 0.0;
-        *material = visuals.default_mat.clone();
+    for (tile, mut material) in &mut tiles {
+        let mat = match tile {
+            TileType::Default => visuals.default_mat.clone(),
+            TileType::Mountain => visuals.blocked_mat.clone(),
+            TileType::Spawner => visuals.spawner_mat.clone(),
+            TileType::Target => visuals.target_mat.clone(),
+        };
+        *material = mat;
         count += 1;
-    }
-    let mut iter = tiles.iter_many_mut(changes.iter());
-    while let Some((coord, mut transform, mut material)) = iter.fetch_next() {
-        transform.translation.y = HexBoard::COLUMN_UNIT_HEIGHT;
-        *material = visuals.blocked_mat.clone();
-        count += 1;
-        board.blocked_tiles.insert(coord.0);
     }
     if count > 0 {
-        log::info!("Handled {count} blocked tiles");
+        log::info!("Handled {count} changed tiles");
+        compute_path_evw.send(ComputePaths);
     }
 }
 
 pub fn handle_path_tiles(
     mut removals: RemovedComponents<Path>,
     changes: Query<Entity, (Added<Path>, With<Coords>)>,
-    mut tiles: Query<(
-        &mut Handle<StandardMaterial>,
-        Option<&Target>,
-        Option<&Blocked>,
-        Option<&Spawner>,
-    )>,
-    visuals: Res<ColumnVisuals>,
+    mut tiles: Query<&mut Transform, With<Coords>>,
 ) {
     let mut count = 0;
     let mut iter = tiles.iter_many_mut(removals.iter());
-    while let Some((mut material, target, blocked, spawner)) = iter.fetch_next() {
-        if target.is_none() && spawner.is_none() && blocked.is_none() {
-            *material = visuals.default_mat.clone();
-        }
+    while let Some(mut transform) = iter.fetch_next() {
+        transform.scale = HexBoard::DEFAULT_SCALE;
         count += 1;
     }
     let mut iter = tiles.iter_many_mut(changes.iter());
-    while let Some((mut material, target, blocked, spawner)) = iter.fetch_next() {
-        if target.is_none() && spawner.is_none() && blocked.is_none() {
-            *material = visuals.path_mat.clone();
-        }
+    while let Some(mut transform) = iter.fetch_next() {
+        transform.scale = HexBoard::PATH_SCALE;
         count += 1;
     }
     if count > 0 {
         log::info!("Handled {count} path tiles");
-    }
-}
-
-pub fn handle_spawner_tiles(
-    mut changed_tiles: Query<&mut Handle<StandardMaterial>, Added<Spawner>>,
-    visuals: Res<ColumnVisuals>,
-) {
-    let mut count = 0;
-    for mut material in &mut changed_tiles {
-        *material = visuals.spawner_mat.clone();
-        count += 1;
-    }
-    if count > 0 {
-        log::info!("Handled {count} spawner tiles");
     }
 }
 
@@ -82,18 +54,21 @@ pub fn compute_enemy_paths(
     board: Res<HexBoard>,
     mut spawners: Query<(&Coords, &mut EnemyPath)>,
     path_tiles: Query<Entity, With<Path>>,
+    tiles: Query<&TileType>,
+    mut compute_evr: EventReader<ComputePaths>,
 ) {
+    let events = compute_evr.iter().count();
+    if events == 0 {
+        return;
+    }
     for entity in &path_tiles {
         commands.entity(entity).remove::<Path>();
     }
+    let cost = |entity: &Entity| tiles.get(*entity).ok().map(|t| t.cost());
     for (coord, mut path) in &mut spawners {
-        let new_path = board.shortest_path(coord.0, Hex::ZERO);
+        let new_path = board.shortest_path(coord.0, Hex::ZERO, cost);
         for c in &new_path {
             let mut cmd = commands.entity(board.tile_entities[c]);
-            if board.blocked_tiles.contains(c) {
-                log::info!("Removed blocked coordinate {c:?} to fix path");
-                cmd.remove::<Blocked>();
-            }
             cmd.insert(Path);
         }
         path.0 = new_path;
