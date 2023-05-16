@@ -5,20 +5,19 @@ mod events;
 mod resources;
 mod systems;
 
-use bevy::prelude::*;
+use std::time::Duration;
+
+use bevy::{prelude::*, time::common_conditions::on_timer};
 #[cfg(feature = "debug")]
 use bevy_inspector_egui::quick::*;
 use events::*;
-use resources::{
-    board::BoardConfig,
-    hex::HexConfig,
-    visuals::{ColumnVisuals, EnemyVisuals, InputVisuals},
-};
+use resources::{board::BoardConfig, hex::HexConfig, visuals::*};
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.9, 1.0);
+const DAMAGE_TICK: Duration = Duration::from_secs(1);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, SystemSet)]
 enum GameSet {
@@ -53,11 +52,12 @@ fn main() {
         .init_resource::<ColumnVisuals>()
         .init_resource::<InputVisuals>()
         .init_resource::<EnemyVisuals>()
+        .init_resource::<BuildingVisuals>()
         .init_resource::<BoardConfig>();
     // Game events
     app.add_event::<ComputePaths>()
         .add_event::<ToggleTile>()
-        .add_event::<ToggleBuilding>();
+        .add_event::<PlaceBuilding>();
     // Systems
     app.add_startup_system(systems::camera::setup)
         .add_startup_system(systems::board::input::setup);
@@ -90,6 +90,9 @@ fn main() {
             systems::board::enemies::spawn,
             systems::board::enemies::movement,
             systems::board::enemies::handle_health,
+            systems::board::buildings::spawn,
+            systems::board::buildings::place_damage,
+            systems::board::buildings::handle_damage.run_if(on_timer(DAMAGE_TICK)),
         )
             .in_set(GameSet::Board),
     )

@@ -1,11 +1,14 @@
+use std::usize;
+
 use hexx::Hex;
 
 #[derive(Debug)]
 pub struct ComputePaths;
 
 #[derive(Debug)]
-pub struct ToggleBuilding {
+pub struct PlaceBuilding {
     pub coord: Hex,
+    pub id: usize,
 }
 
 #[derive(Debug)]

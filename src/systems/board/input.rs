@@ -40,7 +40,7 @@ pub fn select_tile(
     transforms: Query<&GlobalTransform>,
     mut selector: Query<&mut Transform, With<Selector>>,
     mut selection: Local<Hex>,
-    mut building_evw: EventWriter<ToggleBuilding>,
+    mut building_evw: EventWriter<PlaceBuilding>,
     mut tile_evw: EventWriter<ToggleTile>,
 ) {
     let window = windows.single();
@@ -65,7 +65,7 @@ pub fn select_tile(
     if mouse_input.just_pressed(MouseButton::Left) {
         tile_evw.send(ToggleTile { coord });
     } else if mouse_input.just_pressed(MouseButton::Right) {
-        building_evw.send(ToggleBuilding { coord })
+        building_evw.send(PlaceBuilding { coord, id: 0 })
     }
 }
 

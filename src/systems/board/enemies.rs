@@ -76,7 +76,7 @@ pub fn spawn(
             ColorMesh2dBundle {
                 mesh: visuals.mesh.clone().into(),
                 material: visuals.mat.clone(),
-                transform: Transform::from_xyz(pos.x, pos.y, Z_POS),
+                transform: Transform::from_xyz(pos.x, pos.y, Z_POS).with_scale(Vec3::ZERO),
                 ..default()
             },
             Name::new("Enemy"),

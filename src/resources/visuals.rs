@@ -27,6 +27,12 @@ pub struct EnemyVisuals {
     pub mat: Handle<ColorMaterial>,
 }
 
+#[derive(Debug, Resource, Reflect)]
+pub struct BuildingVisuals {
+    pub mesh: Handle<Mesh>,
+    pub mats: Vec<Handle<ColorMaterial>>,
+}
+
 impl FromWorld for ColumnVisuals {
     fn from_world(world: &mut World) -> Self {
         let hex_config = world.resource::<HexConfig>();
@@ -71,6 +77,22 @@ impl FromWorld for EnemyVisuals {
         let mut materials = world.resource_mut::<Assets<ColorMaterial>>();
         let mat = materials.add(Color::BLACK.into());
         Self { mesh, mat }
+    }
+}
+
+impl FromWorld for BuildingVisuals {
+    fn from_world(world: &mut World) -> Self {
+        let mesh = shape::Quad::new(Vec2::splat(HEX_SIZE * 0.9));
+        let mut meshes = world.resource_mut::<Assets<Mesh>>();
+        let mesh = meshes.add(mesh.into());
+        let mut materials = world.resource_mut::<Assets<ColorMaterial>>();
+        let mats = vec![
+            materials.add(Color::ORANGE.into()),
+            materials.add(Color::ORANGE_RED.into()),
+            materials.add(Color::BLUE.into()),
+            materials.add(Color::ALICE_BLUE.into()),
+        ];
+        Self { mesh, mats }
     }
 }
 

@@ -7,6 +7,10 @@ pub struct Coords(pub Hex);
 #[derive(Debug, Component)]
 pub struct Board;
 
+/// Marker component for tiles with a tower
+#[derive(Debug, Component, Deref)]
+pub struct Building(pub usize);
+
 /// Marker component for the selector mesh
 #[derive(Debug, Component)]
 pub struct Selector;
@@ -15,7 +19,7 @@ pub struct Selector;
 #[derive(Debug, Component)]
 pub struct Path;
 
-#[derive(Debug, Default, Component)]
+#[derive(Debug, Default, Copy, Clone, Component, PartialEq, Eq)]
 pub enum TileType {
     /// Regular tile
     #[default]
