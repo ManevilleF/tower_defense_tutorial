@@ -2,8 +2,6 @@
 pub mod board;
 /// Hexagon related resources
 pub mod hex;
-/// input resources
-pub mod input;
 /// Resources storing meshes, materials, etc
 pub mod visuals;
 

@@ -1,10 +1,9 @@
 use crate::components::*;
-use crate::events::TileClicked;
-use crate::resources::input::InputState;
-use crate::resources::visuals::InputVisuals;
+use crate::events::*;
 use crate::resources::{
     board::{BoardConfig, HexBoard},
     hex::HexConfig,
+    visuals::InputVisuals,
 };
 use bevy::{input::mouse::MouseWheel, log, prelude::*};
 use hexx::Hex;
@@ -41,7 +40,8 @@ pub fn select_tile(
     transforms: Query<&GlobalTransform>,
     mut selector: Query<&mut Transform, With<Selector>>,
     mut selection: Local<Hex>,
-    mut clicked_evw: EventWriter<TileClicked>,
+    mut building_evw: EventWriter<ToggleBuilding>,
+    mut tile_evw: EventWriter<ToggleTile>,
 ) {
     let window = windows.single();
     let projection = projections.single();
@@ -63,35 +63,30 @@ pub fn select_tile(
         select_tranform.translation = target_transform.transform_point(Vec3::Z * Z_POS);
     }
     if mouse_input.just_pressed(MouseButton::Left) {
-        clicked_evw.send(TileClicked(coord));
+        tile_evw.send(ToggleTile { coord });
+    } else if mouse_input.just_pressed(MouseButton::Right) {
+        building_evw.send(ToggleBuilding { coord })
     }
 }
 
-pub fn apply_action(
-    mut events: EventReader<TileClicked>,
-    state: Res<InputState>,
+pub fn toggle_tile(
+    mut events: EventReader<ToggleTile>,
     board: Res<HexBoard>,
     mut tiles: Query<&mut TileType>,
 ) {
-    for TileClicked(coord) in events.iter() {
-        log::info!("Clicked on {coord:?} for {state:?}");
-        let entity = match board.tile_entities.get(coord) {
+    for event in events.iter() {
+        let entity = match board.tile_entities.get(&event.coord) {
             Some(e) => *e,
             None => continue,
         };
-        match *state {
-            InputState::ToggleBlocked => {
-                let mut tile = match tiles.get_mut(entity) {
-                    Ok(b) => b,
-                    Err(_) => continue,
-                };
-                match *tile {
-                    TileType::Default => *tile = TileType::Mountain,
-                    TileType::Mountain => *tile = TileType::Default,
-                    _ => (),
-                }
-            }
-            InputState::Build => todo!(),
+        let mut tile = match tiles.get_mut(entity) {
+            Ok(b) => b,
+            Err(_) => continue,
+        };
+        match *tile {
+            TileType::Default => *tile = TileType::Mountain,
+            TileType::Mountain => *tile = TileType::Default,
+            _ => (),
         }
     }
 }

@@ -8,11 +8,10 @@ mod systems;
 use bevy::prelude::*;
 #[cfg(feature = "debug")]
 use bevy_inspector_egui::quick::*;
-use events::{ComputePaths, TileClicked};
+use events::*;
 use resources::{
-    board::{BoardConfig, HexBoard},
+    board::BoardConfig,
     hex::HexConfig,
-    input::InputState,
     visuals::{ColumnVisuals, EnemyVisuals, InputVisuals},
 };
 
@@ -54,10 +53,11 @@ fn main() {
         .init_resource::<ColumnVisuals>()
         .init_resource::<InputVisuals>()
         .init_resource::<EnemyVisuals>()
-        .init_resource::<BoardConfig>()
-        .init_resource::<InputState>();
+        .init_resource::<BoardConfig>();
     // Game events
-    app.add_event::<TileClicked>().add_event::<ComputePaths>();
+    app.add_event::<ComputePaths>()
+        .add_event::<ToggleTile>()
+        .add_event::<ToggleBuilding>();
     // Systems
     app.add_startup_system(systems::camera::setup)
         .add_startup_system(systems::board::input::setup);
@@ -75,7 +75,7 @@ fn main() {
     .add_systems(
         (
             systems::board::input::select_tile,
-            systems::board::input::apply_action,
+            systems::board::input::toggle_tile,
             systems::board::hooks::compute_enemy_paths,
             systems::board::hooks::handle_path_tiles,
             systems::board::hooks::handle_changed_tiles,
@@ -100,8 +100,4 @@ fn main() {
 
 fn should_generate_board(config: Res<BoardConfig>) -> bool {
     config.is_changed()
-}
-
-fn should_compute_paths(board: Res<HexBoard>) -> bool {
-    board.is_changed()
 }

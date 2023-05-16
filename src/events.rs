@@ -1,7 +1,14 @@
 use hexx::Hex;
 
 #[derive(Debug)]
-pub struct TileClicked(pub Hex);
+pub struct ComputePaths;
 
 #[derive(Debug)]
-pub struct ComputePaths;
+pub struct ToggleBuilding {
+    pub coord: Hex,
+}
+
+#[derive(Debug)]
+pub struct ToggleTile {
+    pub coord: Hex,
+}

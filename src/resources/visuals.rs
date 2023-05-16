@@ -4,10 +4,7 @@ use bevy::{
 };
 use hexx::{HexLayout, PlaneMeshBuilder};
 
-use super::{
-    board::HexBoard,
-    hex::{HexConfig, HEX_SIZE},
-};
+use super::hex::{HexConfig, HEX_SIZE};
 
 #[derive(Debug, Resource, Reflect)]
 pub struct ColumnVisuals {
