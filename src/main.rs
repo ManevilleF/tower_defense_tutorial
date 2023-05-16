@@ -89,6 +89,7 @@ fn main() {
             systems::board::input::camera_zoom,
             systems::board::enemies::spawn,
             systems::board::enemies::movement,
+            systems::board::enemies::handle_health,
         )
             .in_set(GameSet::Board),
     )

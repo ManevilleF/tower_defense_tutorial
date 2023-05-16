@@ -46,6 +46,7 @@ pub struct Movement {
     pub path_entity: Entity,
     pub index: usize,
     pub lerp: f32,
+    pub speed: f32,
 }
 
 impl TileType {

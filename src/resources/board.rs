@@ -1,3 +1,5 @@
+use std::ops::RangeInclusive;
+
 use bevy::{log, prelude::*, utils::HashMap};
 use hexx::{algorithms::a_star, Hex};
 use rand::RngCore;
@@ -6,8 +8,8 @@ use rand::RngCore;
 pub struct BoardConfig {
     pub map_radius: u32,
     pub enemy_spawn_tick: f32,
-    pub enemy_speed: f32,
-    pub base_enemy_health: u8,
+    pub max_enemy_speed: f32,
+    pub base_enemy_health: RangeInclusive<u8>,
     pub difficulty: i32,
     pub rng_seed: [u8; 32],
 }
@@ -30,11 +32,11 @@ impl Default for BoardConfig {
         rand::thread_rng().fill_bytes(&mut rng_seed);
         Self {
             map_radius: 30,
-            base_enemy_health: 10,
+            base_enemy_health: 10..=50,
             enemy_spawn_tick: 1.0,
             rng_seed,
             difficulty: 1,
-            enemy_speed: 1.0,
+            max_enemy_speed: 0.5,
         }
     }
 }

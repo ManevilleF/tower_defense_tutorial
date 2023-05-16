@@ -4,7 +4,10 @@ use bevy::{
 };
 use hexx::{HexLayout, PlaneMeshBuilder};
 
-use super::hex::HexConfig;
+use super::{
+    board::HexBoard,
+    hex::{HexConfig, HEX_SIZE},
+};
 
 #[derive(Debug, Resource, Reflect)]
 pub struct ColumnVisuals {
@@ -24,7 +27,7 @@ pub struct InputVisuals {
 #[derive(Debug, Resource, Reflect)]
 pub struct EnemyVisuals {
     pub mesh: Handle<Mesh>,
-    pub health_mats: Vec<Handle<ColorMaterial>>,
+    pub mat: Handle<ColorMaterial>,
 }
 
 impl FromWorld for ColumnVisuals {
@@ -65,19 +68,12 @@ impl FromWorld for InputVisuals {
 
 impl FromWorld for EnemyVisuals {
     fn from_world(world: &mut World) -> Self {
-        let mesh = shape::Circle::new(5.0);
+        let mesh = shape::Circle::new(HEX_SIZE * 0.9);
         let mut meshes = world.resource_mut::<Assets<Mesh>>();
         let mesh = meshes.add(mesh.into());
-        let colors: [Color; u8::MAX as usize] = std::array::from_fn(|i| {
-            let v = i as u8;
-            Color::rgb_u8(v, v, v)
-        });
         let mut materials = world.resource_mut::<Assets<ColorMaterial>>();
-        let health_mats = colors
-            .into_iter()
-            .map(|c| materials.add(c.into()))
-            .collect();
-        Self { mesh, health_mats }
+        let mat = materials.add(Color::BLACK.into());
+        Self { mesh, mat }
     }
 }
 

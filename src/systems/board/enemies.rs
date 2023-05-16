@@ -1,20 +1,19 @@
 use crate::{
     components::*,
-    resources::{board::BoardConfig, hex::HexConfig, visuals::EnemyVisuals},
+    resources::{board::BoardConfig, hex::HexConfig, visuals::EnemyVisuals, GameRng},
 };
 use bevy::{prelude::*, utils::HashMap};
+use rand::Rng;
 
 const Z_POS: f32 = 30.0;
 
 pub fn movement(
-    config: Res<BoardConfig>,
     hex_config: Res<HexConfig>,
     paths: Query<(Entity, &EnemyPath)>,
     mut enemies: Query<(&mut Transform, &mut Movement)>,
     time: Res<Time>,
 ) {
     let delta_time = time.delta_seconds();
-    let lerp_unit = config.enemy_speed * delta_time;
     let paths: HashMap<Entity, Vec<Vec3>> = paths
         .iter()
         .map(|(e, p)| {
@@ -28,7 +27,7 @@ pub fn movement(
     for (mut transform, mut movement) in &mut enemies {
         let path = &paths[&movement.path_entity];
 
-        movement.lerp += lerp_unit;
+        movement.lerp += movement.speed * delta_time;
         if movement.lerp > 1.0 {
             movement.lerp -= 1.0;
             movement.index += 1;
@@ -40,12 +39,30 @@ pub fn movement(
     }
 }
 
+pub fn handle_health(
+    mut commands: Commands,
+    config: Res<BoardConfig>,
+    mut healths: Query<(Entity, &mut Transform, &Health, &mut Movement), Changed<Health>>,
+) {
+    let max_health = *config.base_enemy_health.end() as f32;
+    for (entity, mut transform, health, mut movement) in &mut healths {
+        if health.0 == 0 {
+            commands.entity(entity).despawn();
+            continue;
+        }
+        let ratio = health.0 as f32 / max_health;
+        transform.scale = Vec3::splat(ratio);
+        movement.speed = config.max_enemy_speed / ratio;
+    }
+}
+
 pub fn spawn(
     config: Res<BoardConfig>,
     visuals: Res<EnemyVisuals>,
     mut commands: Commands,
     paths: Query<(&GlobalTransform, Entity), With<EnemyPath>>,
     mut timer: Local<f32>,
+    mut rng: ResMut<GameRng>,
     time: Res<Time>,
 ) {
     *timer += time.delta_seconds();
@@ -53,22 +70,22 @@ pub fn spawn(
         return;
     }
     *timer -= config.enemy_spawn_tick;
-    let health = config.base_enemy_health;
     for (transform, path_entity) in &paths {
         let pos = transform.translation();
         commands.spawn((
             ColorMesh2dBundle {
                 mesh: visuals.mesh.clone().into(),
-                material: visuals.health_mats[health as usize].clone(),
+                material: visuals.mat.clone(),
                 transform: Transform::from_xyz(pos.x, pos.y, Z_POS),
                 ..default()
             },
             Name::new("Enemy"),
-            Health(health),
+            Health(rng.gen_range(config.base_enemy_health.clone())),
             Movement {
                 path_entity,
                 index: 0,
                 lerp: 0.0,
+                speed: config.max_enemy_speed,
             },
         ));
     }

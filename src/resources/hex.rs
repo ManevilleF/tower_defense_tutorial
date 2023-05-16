@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use hexx::{HexLayout, HexOrientation};
 
-const HEX_SIZE: Vec2 = Vec2::splat(10.0);
+pub const HEX_SIZE: f32 = 10.0;
 
 #[derive(Debug, Resource)]
 pub struct HexConfig {
@@ -13,7 +13,7 @@ impl FromWorld for HexConfig {
         Self {
             layout: HexLayout {
                 orientation: HexOrientation::flat(),
-                hex_size: HEX_SIZE,
+                hex_size: Vec2::splat(HEX_SIZE),
                 ..default()
             },
         }
