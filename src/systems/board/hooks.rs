@@ -56,7 +56,11 @@ pub fn handle_damage_tiles(
     mut tiles: Query<(&mut Handle<ColorMaterial>, &Damage), Changed<Damage>>,
 ) {
     for (mut mat, damage) in &mut tiles {
-        *mat = visuals.damage_mats[damage.0 as usize].clone();
+        *mat = visuals
+            .damage_mats
+            .get((damage.0 as usize / 10).max(1))
+            .unwrap_or(visuals.damage_mats.last().unwrap())
+            .clone()
     }
 }
 

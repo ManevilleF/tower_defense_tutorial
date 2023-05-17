@@ -14,7 +14,7 @@ pub struct ColumnVisuals {
     pub default_mat: Handle<ColorMaterial>,
     pub blocked_mat: Handle<ColorMaterial>,
     pub path_mat: Handle<ColorMaterial>,
-    pub damage_mats: [Handle<ColorMaterial>; 256],
+    pub damage_mats: [Handle<ColorMaterial>; 10],
 }
 
 #[derive(Debug, Resource, Reflect)]
@@ -47,9 +47,19 @@ impl FromWorld for ColumnVisuals {
         let default_mat = materials.add(Color::GREEN.into());
         let blocked_mat = materials.add(Color::GRAY.into());
         let path_mat = materials.add(Color::WHITE.into());
-        let damage_mats = std::array::from_fn(|i| {
-            materials.add(Color::rgb_u8(u8::MAX, u8::MAX - i as u8, u8::MAX - i as u8).into())
-        });
+        let damage_mats = [
+            Color::WHITE,
+            Color::YELLOW,
+            Color::GOLD,
+            Color::ORANGE,
+            Color::ORANGE_RED,
+            Color::SALMON,
+            Color::CRIMSON,
+            Color::TOMATO,
+            Color::RED,
+            Color::BLACK,
+        ]
+        .map(|c| materials.add(c.into()));
         Self {
             mesh,
             spawner_mat,
