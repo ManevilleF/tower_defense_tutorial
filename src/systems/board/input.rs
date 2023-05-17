@@ -22,7 +22,7 @@ pub fn setup(mut commands: Commands, visuals: Res<InputVisuals>) {
         ColorMesh2dBundle {
             mesh: visuals.selector_mesh.clone().into(),
             material: visuals.selected_mat.clone(),
-            transform: Transform::from_xyz(0.0, 0.0, -10.0),
+            transform: Transform::from_xyz(0.0, 0.0, Z_POS),
             ..default()
         },
         Selector,
@@ -32,12 +32,10 @@ pub fn setup(mut commands: Commands, visuals: Res<InputVisuals>) {
 
 #[allow(clippy::too_many_arguments)]
 pub fn select_tile(
-    board: Res<HexBoard>,
     config: Res<HexConfig>,
     windows: Query<&Window>,
     projections: Query<&OrthographicProjection>,
     mouse_input: Res<Input<MouseButton>>,
-    transforms: Query<&GlobalTransform>,
     mut selector: Query<&mut Transform, With<Selector>>,
     mut selection: Local<Hex>,
     mut building_evw: EventWriter<PlaceBuilding>,
@@ -54,13 +52,10 @@ pub fn select_tile(
     let coord = config.layout.world_pos_to_hex(pos);
     if *selection != coord {
         *selection = coord;
-        let entity = match board.tile_entities.get(&selection) {
-            Some(e) => *e,
-            None => return,
-        };
+        let pos = config.layout.hex_to_world_pos(coord);
         let mut select_tranform = selector.single_mut();
-        let target_transform = transforms.get(entity).unwrap();
-        select_tranform.translation = target_transform.transform_point(Vec3::Z * Z_POS);
+        select_tranform.translation.x = pos.x;
+        select_tranform.translation.y = pos.y;
     }
     if mouse_input.just_pressed(MouseButton::Left) {
         tile_evw.send(ToggleTile { coord });

@@ -1,5 +1,5 @@
 use crate::{
-    components::{Building, Coords, Damage, Health, TileType},
+    components::*,
     events::PlaceBuilding,
     resources::{
         board::{BoardConfig, HexBoard},
@@ -17,7 +17,7 @@ pub fn spawn(
     board: Res<HexBoard>,
     visuals: Res<BuildingVisuals>,
     mut building_evr: EventReader<PlaceBuilding>,
-    tiles: Query<&TileType, Without<Building>>,
+    tiles: Query<&TileType, (Without<Building>, Without<Path>)>,
 ) {
     for event in building_evr.iter() {
         let entity = board.tile_entities[&event.coord];
@@ -80,7 +80,13 @@ pub fn handle_damage(
     for (transform, mut health) in &mut healths {
         let pos = transform.translation().xy();
         let coord = hex_config.layout.world_pos_to_hex(pos);
-        let entity = board.tile_entities[&coord];
+        let entity = match board.tile_entities.get(&coord) {
+            Some(e) => *e,
+            None => {
+                log::error!("Could not find tile entity at {coord:?}");
+                continue;
+            }
+        };
         if let Ok(damage) = damage_tiles.get(entity) {
             health.0 = health.0.saturating_sub(damage.0);
         }

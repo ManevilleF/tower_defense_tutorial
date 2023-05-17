@@ -39,23 +39,23 @@ impl Default for BoardConfig {
         rand::thread_rng().fill_bytes(&mut rng_seed);
         Self {
             map_radius: 30,
-            base_enemy_health: 30..=100,
+            base_enemy_health: 100..=u8::MAX,
             enemy_spawn_tick: 1.0,
             rng_seed,
             difficulty: 1,
-            max_enemy_speed: 0.5,
+            max_enemy_speed: 2.0,
             buildings: vec![
                 BuildingConfig {
                     range: 0..=5,
-                    damage: 5,
+                    damage: 2,
                 },
                 BuildingConfig {
                     range: 3..=5,
-                    damage: 10,
+                    damage: 5,
                 },
                 BuildingConfig {
                     range: 0..=3,
-                    damage: 15,
+                    damage: 10,
                 },
             ],
         }

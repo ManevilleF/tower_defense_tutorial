@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use hexx::{HexLayout, HexOrientation};
 
-pub const HEX_SIZE: f32 = 10.0;
+pub const HEX_SIZE: f32 = 9.0;
 
 #[derive(Debug, Resource)]
 pub struct HexConfig {

@@ -17,7 +17,7 @@ const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 const BACKGROUND_COLOR: Color = Color::rgb(0.0, 0.9, 1.0);
-const DAMAGE_TICK: Duration = Duration::from_secs(1);
+const DAMAGE_TICK: Duration = Duration::from_millis(500);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, SystemSet)]
 enum GameSet {

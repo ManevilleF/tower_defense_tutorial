@@ -1,6 +1,11 @@
 use crate::{
     components::*,
-    resources::{board::BoardConfig, hex::HexConfig, visuals::EnemyVisuals, GameRng},
+    resources::{
+        board::{BoardConfig, HexBoard},
+        hex::HexConfig,
+        visuals::EnemyVisuals,
+        GameRng,
+    },
 };
 use bevy::{prelude::*, utils::HashMap};
 use rand::Rng;
@@ -52,11 +57,13 @@ pub fn handle_health(
         }
         let ratio = health.0 as f32 / max_health;
         transform.scale = Vec3::splat(ratio);
-        movement.speed = config.max_enemy_speed / ratio;
+        movement.speed = config.max_enemy_speed / (1.0 + ratio);
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn spawn(
+    board: Res<HexBoard>,
     config: Res<BoardConfig>,
     visuals: Res<EnemyVisuals>,
     mut commands: Commands,
@@ -72,21 +79,23 @@ pub fn spawn(
     *timer -= config.enemy_spawn_tick;
     for (transform, path_entity) in &paths {
         let pos = transform.translation();
-        commands.spawn((
-            ColorMesh2dBundle {
-                mesh: visuals.mesh.clone().into(),
-                material: visuals.mat.clone(),
-                transform: Transform::from_xyz(pos.x, pos.y, Z_POS).with_scale(Vec3::ZERO),
-                ..default()
-            },
-            Name::new("Enemy"),
-            Health(rng.gen_range(config.base_enemy_health.clone())),
-            Movement {
-                path_entity,
-                index: 0,
-                lerp: 0.0,
-                speed: config.max_enemy_speed,
-            },
-        ));
+        commands
+            .spawn((
+                ColorMesh2dBundle {
+                    mesh: visuals.mesh.clone().into(),
+                    material: visuals.mat.clone(),
+                    transform: Transform::from_xyz(pos.x, pos.y, Z_POS).with_scale(Vec3::ZERO),
+                    ..default()
+                },
+                Name::new("Enemy"),
+                Health(rng.gen_range(config.base_enemy_health.clone())),
+                Movement {
+                    path_entity,
+                    index: 0,
+                    lerp: 0.0,
+                    speed: config.max_enemy_speed,
+                },
+            ))
+            .set_parent(board.entity);
     }
 }
