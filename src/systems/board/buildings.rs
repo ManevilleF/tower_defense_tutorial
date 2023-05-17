@@ -63,7 +63,7 @@ pub fn place_damage(
         let mut iter = tiles.iter_many_mut(tile_entities);
         while let Some((entity, damage)) = iter.fetch_next() {
             if let Some(mut damage) = damage {
-                damage.0 += config.damage;
+                damage.0 = damage.0.saturating_add(config.damage);
             } else {
                 commands.entity(entity).insert(Damage(config.damage));
             }

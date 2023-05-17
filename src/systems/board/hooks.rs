@@ -10,7 +10,8 @@ use hexx::Hex;
 pub fn handle_changed_tiles(
     mut removals: RemovedComponents<Path>,
     changed_tiles: Query<Entity, Or<(Changed<TileType>, Added<Path>)>>,
-    mut tiles: Query<(Ref<TileType>, &mut Handle<ColorMaterial>, Option<&Path>)>,
+    tiles: Query<(Ref<TileType>, &Children, Option<&Path>)>,
+    mut materials: Query<&mut Handle<ColorMaterial>>,
     visuals: Res<ColumnVisuals>,
     mut compute_path_evw: EventWriter<ComputePaths>,
 ) {
@@ -19,19 +20,27 @@ pub fn handle_changed_tiles(
         return;
     }
     let mut count = 0;
-    let mut iter = tiles.iter_many_mut(entities);
-    while let Some((tile, mut material, path)) = iter.fetch_next() {
-        if path.is_some() {
-            *material = visuals.path_mat.clone();
-        } else {
-            let mat = match *tile {
-                TileType::Default => visuals.default_mat.clone(),
-                TileType::Mountain => visuals.blocked_mat.clone(),
-                TileType::Spawner => visuals.spawner_mat.clone(),
-                TileType::Target => visuals.target_mat.clone(),
-            };
-            *material = mat;
-        }
+    for (tile, children, path) in tiles.iter_many(entities) {
+        let mut material = materials.get_mut(children[0]).unwrap();
+        let mat = match *tile {
+            TileType::Default => {
+                if path.is_some() {
+                    &visuals.path_mat
+                } else {
+                    &visuals.default_mat
+                }
+            }
+            TileType::Mountain => {
+                if path.is_some() {
+                    &visuals.path_mat
+                } else {
+                    &visuals.blocked_mat
+                }
+            }
+            TileType::Spawner => &visuals.spawner_mat,
+            TileType::Target => &visuals.target_mat,
+        };
+        *material = mat.clone();
         if tile.is_changed() {
             count += 1;
         }
@@ -39,6 +48,15 @@ pub fn handle_changed_tiles(
     if count > 0 {
         log::info!("Handled {count} changed tiles");
         compute_path_evw.send(ComputePaths);
+    }
+}
+
+pub fn handle_damage_tiles(
+    visuals: Res<ColumnVisuals>,
+    mut tiles: Query<(&mut Handle<ColorMaterial>, &Damage), Changed<Damage>>,
+) {
+    for (mut mat, damage) in &mut tiles {
+        *mat = visuals.damage_mats[damage.0 as usize].clone();
     }
 }
 

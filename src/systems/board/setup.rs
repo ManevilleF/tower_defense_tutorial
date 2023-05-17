@@ -35,9 +35,9 @@ pub fn board(
                 let translation = Vec3::new(pos.x, pos.y, 0.0);
                 let mut cmd = b.spawn((
                     ColorMesh2dBundle {
-                        transform: Transform::from_translation(translation)
-                            .with_scale(HexBoard::DEFAULT_SCALE),
+                        transform: Transform::from_translation(translation),
                         mesh: visuals.mesh.clone().into(),
+                        material: visuals.damage_mats[0].clone(),
                         ..default()
                     },
                     TileType::default(),
@@ -47,6 +47,17 @@ pub fn board(
                 if coord == Hex::ZERO {
                     cmd.insert(TileType::Target);
                 };
+                cmd.with_children(|b| {
+                    b.spawn((
+                        ColorMesh2dBundle {
+                            transform: Transform::from_xyz(0.0, 0.0, 1.0)
+                                .with_scale(HexBoard::DEFAULT_SCALE),
+                            mesh: visuals.mesh.clone().into(),
+                            ..default()
+                        },
+                        Name::new("Foreground"),
+                    ));
+                });
                 let entity = cmd.id();
                 tile_entities.insert(coord, entity);
             }
