@@ -43,7 +43,7 @@ impl FromWorld for ColumnVisuals {
         let mesh = meshes.add(mesh);
         let mut materials = world.resource_mut::<Assets<ColorMaterial>>();
         let spawner_mat = materials.add(Color::ORANGE_RED.into());
-        let target_mat = materials.add(Color::PINK.into());
+        let target_mat = materials.add(Color::BLUE.into());
         let default_mat = materials.add(Color::GREEN.into());
         let blocked_mat = materials.add(Color::GRAY.into());
         let path_mat = materials.add(Color::WHITE.into());

@@ -74,7 +74,7 @@ impl Default for BoardConfig {
 
 impl BoardConfig {
     pub fn difficulty(&self) -> f64 {
-        self.difficulty.abs().max(1) as f64 + 2.0
+        self.difficulty.abs().max(1) as f64 + 1.0
     }
 }
 
