@@ -5,10 +5,11 @@ use bevy_egui::{
     EguiContexts,
 };
 
-use crate::resources::board::CandidateBoardConfig;
+use crate::resources::board::{CandidateBoardConfig, SelectedBuilding};
 
 pub fn show(
     mut commands: Commands,
+    mut selected_building: ResMut<SelectedBuilding>,
     mut config: ResMut<CandidateBoardConfig>,
     mut contexts: EguiContexts,
 ) {
@@ -76,5 +77,14 @@ pub fn show(
                     commands.insert_resource(config.0.clone());
                 }
             });
+        });
+    egui::Window::new("Building")
+        .default_size([0.0, 0.0])
+        .resizable(false)
+        .show(contexts.ctx_mut(), |ui| {
+            ui.heading("Towers");
+            for i in 0..config.buildings.len() {
+                ui.selectable_value(&mut selected_building.0, i, format!("Tower {i}"));
+            }
         });
 }

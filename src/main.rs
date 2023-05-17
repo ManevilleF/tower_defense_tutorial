@@ -12,11 +12,7 @@ use bevy_egui::EguiPlugin;
 #[cfg(feature = "debug")]
 use bevy_inspector_egui::quick::*;
 use events::*;
-use resources::{
-    board::{BoardConfig, CandidateBoardConfig},
-    hex::HexConfig,
-    visuals::*,
-};
+use resources::{board::*, hex::HexConfig, visuals::*};
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -59,6 +55,7 @@ fn main() {
         .init_resource::<InputVisuals>()
         .init_resource::<EnemyVisuals>()
         .init_resource::<BuildingVisuals>()
+        .init_resource::<SelectedBuilding>()
         .init_resource::<BoardConfig>()
         .init_resource::<CandidateBoardConfig>();
     // Game events

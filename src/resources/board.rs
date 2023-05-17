@@ -36,6 +36,9 @@ pub struct BoardState {
     pub wave: u8,
 }
 
+#[derive(Debug, Clone, Copy, Resource, Deref, DerefMut, Default)]
+pub struct SelectedBuilding(pub usize);
+
 impl Default for BoardConfig {
     fn default() -> Self {
         let mut rng_seed = [0; 32];

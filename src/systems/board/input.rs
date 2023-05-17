@@ -1,5 +1,6 @@
 use crate::components::*;
 use crate::events::*;
+use crate::resources::board::SelectedBuilding;
 use crate::resources::{
     board::{BoardConfig, HexBoard},
     hex::HexConfig,
@@ -33,6 +34,7 @@ pub fn setup(mut commands: Commands, visuals: Res<InputVisuals>) {
 #[allow(clippy::too_many_arguments)]
 pub fn select_tile(
     config: Res<HexConfig>,
+    selected_building: Res<SelectedBuilding>,
     windows: Query<&Window>,
     projections: Query<&OrthographicProjection>,
     mouse_input: Res<Input<MouseButton>>,
@@ -60,7 +62,10 @@ pub fn select_tile(
     if mouse_input.just_pressed(MouseButton::Left) {
         tile_evw.send(ToggleTile { coord });
     } else if mouse_input.just_pressed(MouseButton::Right) {
-        building_evw.send(PlaceBuilding { coord, id: 0 })
+        building_evw.send(PlaceBuilding {
+            coord,
+            id: selected_building.0,
+        })
     }
 }
 
