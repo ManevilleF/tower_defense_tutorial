@@ -8,10 +8,15 @@ mod systems;
 use std::time::Duration;
 
 use bevy::{prelude::*, time::common_conditions::on_timer};
+use bevy_egui::EguiPlugin;
 #[cfg(feature = "debug")]
 use bevy_inspector_egui::quick::*;
 use events::*;
-use resources::{board::BoardConfig, hex::HexConfig, visuals::*};
+use resources::{
+    board::{BoardConfig, CandidateBoardConfig},
+    hex::HexConfig,
+    visuals::*,
+};
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -23,7 +28,7 @@ const DAMAGE_TICK: Duration = Duration::from_millis(500);
 enum GameSet {
     BoardSetup,
     Board,
-    // Ui,
+    Ui,
 }
 
 fn main() {
@@ -44,7 +49,8 @@ fn main() {
                 ..default()
             }),
             ..default()
-        }));
+        }))
+        .add_plugin(EguiPlugin);
     #[cfg(feature = "debug")]
     app.add_plugin(WorldInspectorPlugin::new());
     // Game Resources
@@ -53,7 +59,8 @@ fn main() {
         .init_resource::<InputVisuals>()
         .init_resource::<EnemyVisuals>()
         .init_resource::<BuildingVisuals>()
-        .init_resource::<BoardConfig>();
+        .init_resource::<BoardConfig>()
+        .init_resource::<CandidateBoardConfig>();
     // Game events
     app.add_event::<ComputePaths>()
         .add_event::<ToggleTile>()
@@ -96,7 +103,8 @@ fn main() {
         )
             .in_set(GameSet::Board),
     )
-    .configure_set(GameSet::Board.after(GameSet::BoardSetup));
+    .configure_set(GameSet::Board.after(GameSet::BoardSetup))
+    .add_system(systems::ui::show.in_set(GameSet::Ui));
     // run the app
     app.run();
 }

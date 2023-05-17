@@ -1,25 +1,28 @@
-use std::ops::RangeInclusive;
-
 use bevy::{log, prelude::*, utils::HashMap};
 use hexx::{algorithms::a_star, Hex};
 use rand::RngCore;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BuildingConfig {
-    pub range: RangeInclusive<u32>,
+    pub range_min: u32,
+    pub range_max: u32,
     pub damage: u8,
 }
 
-#[derive(Debug, Resource)]
+#[derive(Debug, Clone, Resource)]
 pub struct BoardConfig {
     pub map_radius: u32,
     pub enemy_spawn_tick: f32,
     pub max_enemy_speed: f32,
-    pub base_enemy_health: RangeInclusive<u8>,
+    pub min_enemy_health: u8,
+    pub max_enemy_health: u8,
     pub difficulty: i32,
     pub rng_seed: [u8; 32],
     pub buildings: Vec<BuildingConfig>,
 }
+
+#[derive(Debug, Resource, Default, Deref, DerefMut)]
+pub struct CandidateBoardConfig(pub BoardConfig);
 
 #[derive(Debug, Resource)]
 pub struct HexBoard {
@@ -39,22 +42,26 @@ impl Default for BoardConfig {
         rand::thread_rng().fill_bytes(&mut rng_seed);
         Self {
             map_radius: 30,
-            base_enemy_health: 100..=u8::MAX,
+            min_enemy_health: 100,
+            max_enemy_health: u8::MAX,
             enemy_spawn_tick: 1.0,
             rng_seed,
             difficulty: 1,
             max_enemy_speed: 2.0,
             buildings: vec![
                 BuildingConfig {
-                    range: 0..=5,
+                    range_min: 0,
+                    range_max: 5,
                     damage: 2,
                 },
                 BuildingConfig {
-                    range: 3..=5,
+                    range_min: 3,
+                    range_max: 5,
                     damage: 5,
                 },
                 BuildingConfig {
-                    range: 0..=3,
+                    range_min: 0,
+                    range_max: 3,
                     damage: 10,
                 },
             ],

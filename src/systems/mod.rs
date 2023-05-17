@@ -4,3 +4,5 @@ pub mod board;
 pub mod camera;
 /// Menu systems
 pub mod menu;
+/// UI Systems
+pub mod ui;

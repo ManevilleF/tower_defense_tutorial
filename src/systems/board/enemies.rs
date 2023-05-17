@@ -49,7 +49,7 @@ pub fn handle_health(
     config: Res<BoardConfig>,
     mut healths: Query<(Entity, &mut Transform, &Health, &mut Movement), Changed<Health>>,
 ) {
-    let max_health = *config.base_enemy_health.end() as f32;
+    let max_health = config.max_enemy_health as f32;
     for (entity, mut transform, health, mut movement) in &mut healths {
         if health.0 == 0 {
             commands.entity(entity).despawn();
@@ -88,7 +88,7 @@ pub fn spawn(
                     ..default()
                 },
                 Name::new("Enemy"),
-                Health(rng.gen_range(config.base_enemy_health.clone())),
+                Health(rng.gen_range(config.min_enemy_health..=config.max_enemy_health)),
                 Movement {
                     path_entity,
                     index: 0,

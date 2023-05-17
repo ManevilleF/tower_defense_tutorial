@@ -58,7 +58,7 @@ pub fn place_damage(
         let config = &config.buildings[building.0];
         let tile_entities = coord
             .0
-            .spiral_range(config.range.clone())
+            .spiral_range(config.range_min..=config.range_max)
             .filter_map(|c| board.tile_entities.get(&c).copied());
         let mut iter = tiles.iter_many_mut(tile_entities);
         while let Some((entity, damage)) = iter.fetch_next() {
