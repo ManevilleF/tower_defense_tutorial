@@ -3,49 +3,42 @@ use crate::{
     events::ComputePaths,
     resources::{board::HexBoard, visuals::ColumnVisuals},
 };
-use bevy::{log, prelude::*};
+use bevy::{log, prelude::*, utils::HashSet};
 use hexx::Hex;
 
+#[allow(clippy::type_complexity)]
 pub fn handle_changed_tiles(
-    mut tiles: Query<(&TileType, &mut Handle<ColorMaterial>), Changed<TileType>>,
+    mut removals: RemovedComponents<Path>,
+    changed_tiles: Query<Entity, Or<(Changed<TileType>, Added<Path>)>>,
+    mut tiles: Query<(Ref<TileType>, &mut Handle<ColorMaterial>, Option<&Path>)>,
     visuals: Res<ColumnVisuals>,
     mut compute_path_evw: EventWriter<ComputePaths>,
 ) {
+    let entities: HashSet<_> = removals.iter().chain(changed_tiles.iter()).collect();
+    if entities.is_empty() {
+        return;
+    }
     let mut count = 0;
-    for (tile, mut material) in &mut tiles {
-        let mat = match tile {
-            TileType::Default => visuals.default_mat.clone(),
-            TileType::Mountain => visuals.blocked_mat.clone(),
-            TileType::Spawner => visuals.spawner_mat.clone(),
-            TileType::Target => visuals.target_mat.clone(),
-        };
-        *material = mat;
-        count += 1;
+    let mut iter = tiles.iter_many_mut(entities);
+    while let Some((tile, mut material, path)) = iter.fetch_next() {
+        if path.is_some() {
+            *material = visuals.path_mat.clone();
+        } else {
+            let mat = match *tile {
+                TileType::Default => visuals.default_mat.clone(),
+                TileType::Mountain => visuals.blocked_mat.clone(),
+                TileType::Spawner => visuals.spawner_mat.clone(),
+                TileType::Target => visuals.target_mat.clone(),
+            };
+            *material = mat;
+        }
+        if tile.is_changed() {
+            count += 1;
+        }
     }
     if count > 0 {
         log::info!("Handled {count} changed tiles");
         compute_path_evw.send(ComputePaths);
-    }
-}
-
-pub fn handle_path_tiles(
-    mut removals: RemovedComponents<Path>,
-    changes: Query<Entity, (Added<Path>, With<Coords>)>,
-    mut tiles: Query<&mut Transform, With<Coords>>,
-) {
-    let mut count = 0;
-    let mut iter = tiles.iter_many_mut(removals.iter());
-    while let Some(mut transform) = iter.fetch_next() {
-        transform.scale = HexBoard::DEFAULT_SCALE;
-        count += 1;
-    }
-    let mut iter = tiles.iter_many_mut(changes.iter());
-    while let Some(mut transform) = iter.fetch_next() {
-        transform.scale = HexBoard::PATH_SCALE;
-        count += 1;
-    }
-    if count > 0 {
-        log::info!("Handled {count} path tiles");
     }
 }
 
@@ -73,4 +66,5 @@ pub fn compute_enemy_paths(
         }
         path.0 = new_path;
     }
+    log::info!("Refreshed enemy pathfinding");
 }

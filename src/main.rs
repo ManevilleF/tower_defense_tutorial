@@ -81,7 +81,6 @@ fn main() {
             systems::board::input::select_tile,
             systems::board::input::toggle_tile,
             systems::board::hooks::compute_enemy_paths,
-            systems::board::hooks::handle_path_tiles,
             systems::board::hooks::handle_changed_tiles,
         )
             .chain()

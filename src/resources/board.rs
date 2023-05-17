@@ -79,8 +79,7 @@ impl BoardConfig {
 }
 
 impl HexBoard {
-    pub const DEFAULT_SCALE: Vec3 = Vec3::splat(1.0);
-    pub const PATH_SCALE: Vec3 = Vec3::splat(0.8);
+    pub const DEFAULT_SCALE: Vec3 = Vec3::splat(0.9);
 
     pub fn shortest_path(
         &self,

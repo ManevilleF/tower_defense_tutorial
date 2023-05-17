@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use bevy_egui::{
-    egui::{self, Color32, RichText},
+    egui::{self, Align2, Color32, RichText},
     EguiContexts,
 };
 
@@ -13,8 +13,9 @@ pub fn show(
     mut config: ResMut<CandidateBoardConfig>,
     mut contexts: EguiContexts,
 ) {
-    egui::Window::new("Config")
+    egui::Window::new("Config Menu")
         .default_size([0.0, 0.0])
+        .anchor(Align2::LEFT_TOP, [5.0, 5.0])
         .resizable(false)
         .show(contexts.ctx_mut(), |ui| {
             ui.heading("Board");
@@ -78,11 +79,12 @@ pub fn show(
                 }
             });
         });
-    egui::Window::new("Building")
+    egui::Window::new("Towers")
         .default_size([0.0, 0.0])
+        .anchor(Align2::RIGHT_TOP, [-5.0, 5.0])
         .resizable(false)
+        .collapsible(false)
         .show(contexts.ctx_mut(), |ui| {
-            ui.heading("Towers");
             for i in 0..config.buildings.len() {
                 ui.selectable_value(&mut selected_building.0, i, format!("Tower {i}"));
             }

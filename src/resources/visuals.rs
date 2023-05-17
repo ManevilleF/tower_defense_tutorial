@@ -13,6 +13,7 @@ pub struct ColumnVisuals {
     pub target_mat: Handle<ColorMaterial>,
     pub default_mat: Handle<ColorMaterial>,
     pub blocked_mat: Handle<ColorMaterial>,
+    pub path_mat: Handle<ColorMaterial>,
 }
 
 #[derive(Debug, Resource, Reflect)]
@@ -44,12 +45,14 @@ impl FromWorld for ColumnVisuals {
         let target_mat = materials.add(Color::WHITE.into());
         let default_mat = materials.add(Color::GREEN.into());
         let blocked_mat = materials.add(Color::GRAY.into());
+        let path_mat = materials.add(Color::WHITE.into());
         Self {
             mesh,
             spawner_mat,
             target_mat,
             default_mat,
             blocked_mat,
+            path_mat,
         }
     }
 }
