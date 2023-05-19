@@ -8,7 +8,7 @@ pub mod visuals;
 use std::ops::{Deref, DerefMut};
 
 use bevy::prelude::Resource;
-use rand::rngs::SmallRng;
+use rand::{rngs::SmallRng, SeedableRng};
 
 #[derive(Resource)]
 pub struct GameRng(pub SmallRng);
@@ -24,5 +24,11 @@ impl Deref for GameRng {
 impl DerefMut for GameRng {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
+    }
+}
+
+impl Default for GameRng {
+    fn default() -> Self {
+        Self(SmallRng::from_entropy())
     }
 }

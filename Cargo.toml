@@ -8,12 +8,22 @@ default = []
 debug = ["bevy-inspector-egui"]
 
 [dependencies]
-# Game engine
-bevy = "0.10"
 # Hexagons
 hexx = "0.6"
 # GUI
 bevy_egui = "0.20"
+
+# Game engine
+[dependencies.bevy]
+version = "0.10"
+default-features = false
+features = ["bevy_render", "bevy_pbr", "bevy_sprite", "bevy_core_pipeline", "bevy_asset", "bevy_winit"]
+
+# Dependencies for native only.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.bevy]
+version = "0.10"
+default-features = false
+features = ["bevy_render", "bevy_pbr", "bevy_sprite", "bevy_core_pipeline", "bevy_asset", "bevy_winit", "x11"]
 
 # Rng
 [dependencies.rand] 
@@ -32,3 +42,7 @@ opt-level = 3
 # Enable only a small amount of optimization in debug mode
 [profile.dev]
 opt-level = 1
+
+[profile.release]
+strip = "debuginfo"
+lto = "thin"

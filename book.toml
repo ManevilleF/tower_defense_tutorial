@@ -1,0 +1,14 @@
+[book]
+authors = ["Félix Lescaudey de Maneville"]
+language = "en"
+multilingual = false
+src = "book"
+title = "Bevy tutorial: Tower Defense"
+description = "A step by step tower defense tutorial to learn about Bevy and ECS"
+
+[rust]
+edition = "2021"
+
+[build]
+build-dir = "docs/book"
+create-missing = true

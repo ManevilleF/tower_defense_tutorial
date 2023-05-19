@@ -11,10 +11,10 @@ use hexx::Hex;
 
 const Z_POS: f32 = 10.0;
 
-pub fn reset_board(mut commands: Commands, keys: Res<Input<KeyCode>>) {
+pub fn reset_board(mut commands: Commands, keys: Res<Input<KeyCode>>, config: Res<BoardConfig>) {
     if keys.just_pressed(KeyCode::R) {
         log::info!("Regenerating board");
-        commands.insert_resource(BoardConfig::default());
+        commands.insert_resource(config.clone());
     }
 }
 

@@ -12,7 +12,7 @@ use bevy_egui::EguiPlugin;
 #[cfg(feature = "debug")]
 use bevy_inspector_egui::quick::*;
 use events::*;
-use resources::{board::*, hex::HexConfig, visuals::*};
+use resources::{board::*, hex::HexConfig, visuals::*, GameRng};
 
 const APP_NAME: &str = env!("CARGO_PKG_NAME");
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -37,7 +37,7 @@ fn main() {
         })
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                resolution: (1_000.0, 1_000.0).into(),
+                resolution: (1_400.0, 1_000.0).into(),
                 title: format!("{APP_NAME} {APP_VERSION}"),
                 resizable: true,
                 decorations: true,
@@ -57,7 +57,8 @@ fn main() {
         .init_resource::<BuildingVisuals>()
         .init_resource::<SelectedBuilding>()
         .init_resource::<BoardConfig>()
-        .init_resource::<CandidateBoardConfig>();
+        .init_resource::<CandidateBoardConfig>()
+        .init_resource::<GameRng>();
     // Game events
     app.add_event::<ComputePaths>()
         .add_event::<ToggleTile>()

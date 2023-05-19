@@ -13,7 +13,7 @@ use bevy::{
     utils::{HashMap, HashSet},
 };
 use hexx::{DiagonalDirection, Hex};
-use rand::{rngs::SmallRng, seq::IteratorRandom, Rng, SeedableRng};
+use rand::{seq::IteratorRandom, Rng};
 
 pub fn board(
     mut commands: Commands,
@@ -64,7 +64,6 @@ pub fn board(
         })
         .id();
     log::info!("Spawned board with {} tiles", tile_entities.len());
-    commands.insert_resource(GameRng(SmallRng::from_seed(config.rng_seed)));
     commands.insert_resource(HexBoard {
         entity,
         tile_entities,
