@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Introduction - Bevy tutorial: Tower Defense</title>
+        <title>Grid setup - Bevy tutorial: Tower Defense</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html" class="active">Introduction</a></li><li class="chapter-item expanded "><a href="objectives.html"><strong aria-hidden="true">1.</strong> Objectives</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">2.</strong> App setup</a></li><li class="chapter-item expanded "><a href="grid.html"><strong aria-hidden="true">3.</strong> Grid setup</a></li><li class="chapter-item expanded "><a href="cursor.html"><strong aria-hidden="true">4.</strong> Tile selection</a></li><li class="chapter-item expanded "><a href="resources.html"><strong aria-hidden="true">5.</strong> Config and resources</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="game_config.html"><strong aria-hidden="true">5.1.</strong> Game Config</a></li><li class="chapter-item expanded "><a href="game_visuals.html"><strong aria-hidden="true">5.2.</strong> Visuals</a></li></ol></li><li class="chapter-item expanded "><a href="board.html"><strong aria-hidden="true">6.</strong> The Board</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tiles.html"><strong aria-hidden="true">6.1.</strong> Tile kinds</a></li><li class="chapter-item expanded "><a href="hooks.html"><strong aria-hidden="true">6.2.</strong> Hook systems</a></li><li class="chapter-item expanded "><a href="pathfinding.html"><strong aria-hidden="true">6.3.</strong> Pathfinding</a></li></ol></li><li class="chapter-item expanded "><a href="ememies.html"><strong aria-hidden="true">7.</strong> The enemies</a></li><li class="chapter-item expanded "><a href="gui.html"><strong aria-hidden="true">8.</strong> GUI</a></li><li class="chapter-item expanded "><a href="towers.html"><strong aria-hidden="true">9.</strong> Towers</a></li><li class="chapter-item expanded affix "><a href="author.html">Author</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="introduction.html">Introduction</a></li><li class="chapter-item expanded "><a href="setup.html"><strong aria-hidden="true">1.</strong> App setup</a></li><li class="chapter-item expanded "><a href="grid.html" class="active"><strong aria-hidden="true">2.</strong> Grid setup</a></li><li class="chapter-item expanded "><a href="cursor.html"><strong aria-hidden="true">3.</strong> Tile selection</a></li><li class="chapter-item expanded "><a href="resources.html"><strong aria-hidden="true">4.</strong> Config and resources</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="game_config.html"><strong aria-hidden="true">4.1.</strong> Game Config</a></li><li class="chapter-item expanded "><a href="game_visuals.html"><strong aria-hidden="true">4.2.</strong> Visuals</a></li></ol></li><li class="chapter-item expanded "><a href="board.html"><strong aria-hidden="true">5.</strong> The Board</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="tiles.html"><strong aria-hidden="true">5.1.</strong> Tile kinds</a></li><li class="chapter-item expanded "><a href="hooks.html"><strong aria-hidden="true">5.2.</strong> Hook systems</a></li><li class="chapter-item expanded "><a href="pathfinding.html"><strong aria-hidden="true">5.3.</strong> Pathfinding</a></li></ol></li><li class="chapter-item expanded "><a href="ememies.html"><strong aria-hidden="true">6.</strong> The enemies</a></li><li class="chapter-item expanded "><a href="gui.html"><strong aria-hidden="true">7.</strong> GUI</a></li><li class="chapter-item expanded "><a href="towers.html"><strong aria-hidden="true">8.</strong> Towers</a></li><li class="chapter-item expanded affix "><a href="author.html">Author</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -144,14 +144,17 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="introduction"><a class="header" href="#introduction">Introduction</a></h1>
+                        <h1 id="grid-setup"><a class="header" href="#grid-setup">Grid setup</a></h1>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="setup.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
 
-                            <a rel="next" href="objectives.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="cursor.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -161,8 +164,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="setup.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
 
-                    <a rel="next" href="objectives.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next" href="cursor.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

@@ -9,6 +9,6 @@ mkdir public
 # Move the index file
 cp index.html public
 # Move the assets
-cp -r assets public
+cp -r assets docs/wasm 
 # Bind the wasm build
-wasm-bindgen --out-dir public --target web target/wasm32-unknown-unknown/release/tower_defense.wasm
+wasm-bindgen --out-dir docs/wasm --target web target/wasm32-unknown-unknown/release/tower_defense.wasm
