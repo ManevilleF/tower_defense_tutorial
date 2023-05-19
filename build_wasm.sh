@@ -7,7 +7,7 @@ cargo build --release --target wasm32-unknown-unknown
 # Setup target directory
 mkdir public
 # Move the index file
-cp index.html public
+cp index.html docs/wasm
 # Move the assets
 cp -r assets docs/wasm 
 # Bind the wasm build
