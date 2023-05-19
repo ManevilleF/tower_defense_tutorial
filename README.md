@@ -1,5 +1,8 @@
 # Tower defense tutorial
 
+[Read The tutorial][TutorialUrl]
+
+[Live Demo][DemoUrl]
 
 ## Run
 
@@ -21,3 +24,6 @@ use `cargo run --release` to launch the app in native. Use the `debug` feature f
 Use the *left* mouse button to toggle tiles, and the *right* mouse button to place towers.
 
 You can also regenerate the board by pressing `R`.
+
+[DemoUrl]: https://manevillef.github.io/tower_defense_tutorial/wasm
+[TutorialUrl]: https://manevillef.github.io/tower_defense_tutorial/book
