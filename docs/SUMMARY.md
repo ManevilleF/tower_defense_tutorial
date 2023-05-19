@@ -4,7 +4,6 @@
 
 ## Basics
 
-- [Objectives](./objectives.md)
 - [App setup](./setup.md)
 - [Grid setup](./grid.md)
 - [Tile selection](./cursor.md)

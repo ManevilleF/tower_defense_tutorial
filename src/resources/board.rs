@@ -1,6 +1,5 @@
 use bevy::{log, prelude::*, utils::HashMap};
 use hexx::{algorithms::a_star, Hex};
-use rand::RngCore;
 
 #[derive(Debug, Clone)]
 pub struct BuildingConfig {
@@ -17,7 +16,6 @@ pub struct BoardConfig {
     pub min_enemy_health: u8,
     pub max_enemy_health: u8,
     pub difficulty: i32,
-    pub rng_seed: [u8; 32],
     pub buildings: Vec<BuildingConfig>,
 }
 
@@ -41,14 +39,11 @@ pub struct SelectedBuilding(pub usize);
 
 impl Default for BoardConfig {
     fn default() -> Self {
-        let mut rng_seed = [0; 32];
-        rand::thread_rng().fill_bytes(&mut rng_seed);
         Self {
             map_radius: 30,
             min_enemy_health: 100,
             max_enemy_health: u8::MAX,
             enemy_spawn_tick: 1.0,
-            rng_seed,
             difficulty: 1,
             max_enemy_speed: 2.0,
             buildings: vec![
